@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Heebo">
+    <script src="https://kit.fontawesome.com/f41b5f4b52.js" crossorigin="anonymous"></script>
+    <script src= "all.js"></script>
+
+
+    <!---CSS--->
+    <style>
+        /*responsivity with flex*/
+            html,body{
+                height:100%;
+                display:flex;
+                font-family: 'Heebo', serif;
+                justify-content: center;
+                align-items: center;
+            }
+            table{
+                border-collapse: separate; 
+                border: solid 12px blue;
+                border-radius: 10px;
+            }
+            
+            .dark-box{
+            
+                widows: 60px;
+                height:60px;
+                border:solid 1px black;
+                margin:0px;
+                padding: 0px;
+                background-color:black;
+            }
+            .light-box{
+                width:60px;
+                height:60px;
+                border:solid 1px black;
+                margin:0px;
+                padding: 0px;
+                background-color:white;
+            }
+            #txt{
+               text-align: center;
+               font-size:large;
+            }
+            #knight{
+                position:relative;
+                left:25%;
+                width:30px;
+                padding:1px;
+                border:dotted 1px blue;
+            }
+        </style>
+</head>
+
+
+<body onload = "{var chessBroad = new ChessBroad()}" class="bg-dark" >
+
+    <!---MAIN-->
+      <div>
+          <!---text--->
+          <p id = "txt" class="text-white"> Move the knight !....</p>
+          <!---chess broad-->
+          <table id = "chess-broad-table" cellspacing="0"></table>
+          <!--knight-->
+          <div id ="knight" draggable="true" ></div>
+      </div>
+
+
+
+     <script>
+         /*class point (row,col)*/
+        class Point{
+                constructor(row,col){
+                    this.row = row;
+                    this.col = col;
+                }
+            }
+
+        class Knigth{
+                constructor(){
+                    this.element = document.getElementById('knight');
+                    this.element.innerHTML = 
+                         '<i  class="fas fa-chess-knight" style="font-size: 35px;color: blue;"></i>';
+                }
+                render(){
+                    return this.element;
+                }
+            }
+       
+
+        class ChessBroad{
+            constructor(){
+                this.table = document.getElementById('chess-broad-table');
+                this.knight = new Knigth();
+                this.knightCoordinates = new Point(3,3)  //in the middle
+                this.drawChessBroad(); // draw the chessbroad
+                this.putKnight(this.knightCoordinates); //put the knight in the middle 
+            }
+
+            drawChessBroad(){
+                var start_dark = 0; /*the first col in the first row is light*/
+                for(let row = 0; row < 8 ; row++){
+                    this.drawChessRow(row,start_dark);
+                    start_dark = 1 +(start_dark*-1); //toggle betwen 0 to 1 and 1 to 0
+                    }
+                }
+
+            drawChessRow(row,start_dark){
+                var is_dark = start_dark;
+                var tr = document.createElement('tr'); //new row
+                for(let col = 0; col < 8 ; col++){
+                    var td = document.createElement("td"); //new box
+                    td.id = row.toString() + '-' + col.toString();  /*box id looks like 'row-col'*/
+                    td.ondragover = ()=>{event.preventDefault();} 
+                    td.ondrop = ()=>{this.handleMoveLegal(event.target);} /*arrow function, so "this" would refer to this class  */
+                    if(is_dark == 0){
+                       tr.appendChild(td).classList.add('light-box');}
+                    else{
+                        tr.appendChild(td).classList.add('dark-box');}
+
+                    is_dark = 1 +(is_dark*-1);//toggle betwen 0 to 1 and 1 to 0
+                    }
+                this.table.appendChild(tr);
+                }
+
+
+                putKnight(coordinate){
+                   var box = this.table.getElementsByTagName('tr')[coordinate.row].children[coordinate.col];
+                   box.appendChild(this.knight.render());
+                }
+
+
+                handleMoveLegal(targ){
+                    var coordinates = targ.id.split('-');
+                    var target = new Point(coordinates[0],coordinates[1]);
+                    var chessBroadObj = this;/* very important because in the "readystate" function "this" is related to htmlrequest object*/
+                    var request = new XMLHttpRequest();
+                    
+               request.onreadystatechange = function(){
+                    if(this.status == 200 && this.readyState == 4){
+                        var response = JSON.parse(this.responseText)
+                        if(response["islegal"] == '1'){
+                            /*update the knight location*/
+                            targ.appendChild(chessBroadObj.knight.render());
+                            chessBroadObj.knightCoordinates = target;
+                            /*write */
+                            var text = document.getElementById('txt');
+                            text.innerHTML = "Successfully moved";
+                            text.classList.add('text-success');
+                            setTimeout(function(){
+                               text.innerHTML = "Move the knight !....";
+                               text.classList.remove('text-success');
+                            },800);
+                        }
+                        else{
+                            var text = document.getElementById('txt');
+                            text.innerHTML = "Ilegal move ! try again.";
+                            text.classList.add('text-danger');
+                            setTimeout(function(){
+                                text.innerHTML = "Move the knight !....";
+                                text.classList.remove('text-danger');
+
+                            },800);
+                        }
+                        }
+                    };
+                    var srcrow = this.knightCoordinates.row.toString();
+                    var srccol = this.knightCoordinates.col.toString();
+                    var targetrow = target.row.toString();
+                    var targetcol = target.col.toString();
+                    request.open('GET','ismvlgl?srcrow='+srcrow+'&srccol='+srccol+'&targetrow='+targetrow+'&targetcol='+targetcol,false);
+                    request.send()
+                }
+        };
+    </script>
+</body>
+    
