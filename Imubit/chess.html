@@ -165,11 +165,11 @@
                         }
                         }
                     };
-                    var srcrow = this.knightCoordinates.row.toString();
-                    var srccol = this.knightCoordinates.col.toString();
-                    var targetrow = target.row.toString();
-                    var targetcol = target.col.toString();
-                    request.open('GET','ismvlgl?srcrow='+srcrow+'&srccol='+srccol+'&targetrow='+targetrow+'&targetcol='+targetcol,false);
+                    var rowA = this.knightCoordinates.row.toString();
+                    var colA = this.knightCoordinates.col.toString();
+                    var rowB = target.row.toString();
+                    var colB = target.col.toString();
+                    request.open('GET','ismvlgl?rowA='+rowA+'&colA='+colA+'&rowB='+rowB+'&colB='+colB,false);
                     request.send()
                 }
         };
